@@ -1,0 +1,43 @@
+{
+  "name": "aliasistabductor",
+  "version": "1.0.0",
+  "description": "AliasistAbductor is a free direct file downloader built with Electron.",
+  "main": "main.js",
+  "scripts": {
+    "start": "electron .",
+    "build": "electron-builder"
+  },
+  "keywords": [
+    "electron",
+    "downloader",
+    "file-downloader",
+    "desktop-app"
+  ],
+  "author": "aliasist",
+  "license": "MIT",
+  "devDependencies": {
+    "electron": "^29.0.0",
+    "electron-builder": "^24.0.0"
+  },
+  "build": {
+    "appId": "com.aliasist.aliasistabductor",
+    "productName": "AliasistAbductor",
+    "directories": {
+      "output": "dist"
+    },
+    "files": [
+      "main.js",
+      "renderer/**/*",
+      "package.json"
+    ],
+    "win": {
+      "target": "nsis"
+    },
+    "mac": {
+      "target": "dmg"
+    },
+    "linux": {
+      "target": "AppImage"
+    }
+  }
+}
