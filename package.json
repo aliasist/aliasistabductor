@@ -1,0 +1,67 @@
+{
+  "name": "aliasist-files-abductor",
+  "version": "3.0.0",
+  "description": "Aliasist Files Abductor — Abducting files from across the galaxy",
+  "main": "main.js",
+  "author": "dev_aliasist (www.aliasist.com)",
+  "license": "MIT",
+  "scripts": {
+    "start": "electron . --ozone-platform=x11",
+    "build": "electron-builder"
+  },
+  "devDependencies": {
+    "electron": "^41.0.2",
+    "electron-builder": "^26.8.1"
+  },
+  "build": {
+    "appId": "com.aliasist.files.abductor",
+    "productName": "Aliasist Files Abductor",
+    "win":{
+      "icon": "assets/alien_icon.ico",
+      "target": "nsis"
+    },
+    "linux": {
+      "icon": "assets/alien_icon.png",
+      "target": ["snap"]
+
+    },
+    "snap": {
+      "plugs": [
+        "desktop",
+        "desktop-legacy",
+        "x11",
+        "wayland",
+        "opengl",
+        "home",
+        "removable-media"
+      ],
+      "stagePackages": [
+        "libx11-xcb1",
+        "libxcomposite1",
+        "libxdamage1",
+        "libxrandr2",
+        "libgbm-dev",
+        "libnss3",
+        "libatk-bridge2.0-0",
+        "libnspr4",
+        "libxss1",
+        "libappindicator3-1",
+        "libsecret-1-0",
+        "libtinfo5",
+        "libgl1-mesa-dri",
+        "libgl1-mesa-glx",
+        "libasound2",
+        "fonts-dejavu-core"
+      ]
+    },
+    "nsis": {
+      "oneClick": true,
+      "installerIcon": "assets/alien_icon.ico"
+    },
+    "files": [
+      "main.js",
+      "package.json",
+      "assets/**/*"
+    ]
+  }
+}
