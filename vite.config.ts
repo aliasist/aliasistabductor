@@ -1,21 +1,37 @@
 import { defineConfig } from "vite";
 import react from "@vitejs/plugin-react";
 import path from "path";
-import { componentTagger } from "lovable-tagger";
 
 // https://vitejs.dev/config/
-export default defineConfig(({ mode }) => ({
-  server: {
-    host: "::",
-    port: 8080,
-    hmr: {
-      overlay: false,
+export default defineConfig(async ({ mode }) => {
+  // `lovable-tagger` is optional dev tooling; don't fail production builds
+  // if npm couldn't install it (peer-dep conflicts with vite versions).
+  const devPlugins = [];
+  if (mode === "development") {
+    try {
+      const mod = await import("lovable-tagger");
+      if (typeof mod.componentTagger === "function") {
+        devPlugins.push(mod.componentTagger());
+      }
+    } catch (err) {
+      // eslint-disable-next-line no-console
+      console.warn("[vite] lovable-tagger not available; skipping tagger.");
+    }
+  }
+
+  return {
+    server: {
+      host: "::",
+      port: 8080,
+      hmr: {
+        overlay: false,
+      },
     },
-  },
-  plugins: [react(), mode === "development" && componentTagger()].filter(Boolean),
-  resolve: {
-    alias: {
-      "@": path.resolve(__dirname, "./src"),
+    plugins: [react(), ...devPlugins],
+    resolve: {
+      alias: {
+        "@": path.resolve(__dirname, "./src"),
+      },
     },
-  },
-}));
+  };
+});
