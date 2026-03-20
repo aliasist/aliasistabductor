@@ -1,12 +1,30 @@
 import { motion } from "framer-motion";
 
+const releaseTag = "#v2.7.0";
+const releaseBaseUrl = `https://github.com/aliasist/aliasistabductor/releases/download/${releaseTag}`;
+
+const appImageFile = "Aliasist.Files.Abductor-2.7.0.AppImage";
+const snapFile = "aliasist-files-abductor_2.7.0_amd64.snap";
+const windowsExeFile = "Aliasist.Files.Abductor.Setup.2.7.0.exe";
+
+const downloadLinks = {
+  appImage: `${releaseBaseUrl}/${encodeURIComponent(appImageFile)}`,
+  snap: `${releaseBaseUrl}/${snapFile}`,
+  windowsExe: `${releaseBaseUrl}/${encodeURIComponent(windowsExeFile)}`,
+};
+
 const projects = [
   {
     name: "Aliaist-Files-Abductor",
     description:
       "A file organization and automation tool that abducts your messy directories and deposits them exactly where they belong. Built with a clean CLI interface and an alien theme that doesn't apologize for itself. Does the work. No questions asked.",
     tech: ["Python", "CLI", "File Automation"],
-    github: "#",
+    github: `https://github.com/aliasist/aliasistabductor/releases/tag/${releaseTag}`,
+    downloads: [
+      { label: "AppImage", href: downloadLinks.appImage },
+      { label: "snap", href: downloadLinks.snap },
+      { label: "Windows EXE", href: downloadLinks.windowsExe },
+    ],
     featured: true,
     status: "Active",
     icon: "🛸",
@@ -80,6 +98,20 @@ const ProjectsSection = () => {
                     View on GitHub ↗
                   </a>
                 </div>
+
+                <div className="flex gap-3 flex-wrap mt-6">
+                  {project.downloads.map((d) => (
+                    <a
+                      key={d.label}
+                      href={d.href}
+                      className="font-mono text-xs uppercase tracking-[0.1em] text-electric hover:text-electric/70 transition-colors flex items-center gap-1.5"
+                      target="_blank"
+                      rel="noopener noreferrer"
+                    >
+                      Download {d.label} ↧
+                    </a>
+                  ))}
+                </div>
               </div>
             ))}
 
@@ -87,12 +119,12 @@ const ProjectsSection = () => {
             <div className="grid sm:grid-cols-2 gap-0.5">
               <div className="border border-dashed border-border p-10 flex flex-col items-center justify-center min-h-[160px] bg-card">
                 <p className="font-mono text-xs text-muted-foreground tracking-[0.1em]">
-                  // next_transmission_incoming
+                  // projects_are_coming_soon
                 </p>
               </div>
               <div className="border border-dashed border-border p-10 flex flex-col items-center justify-center min-h-[160px] bg-card">
                 <p className="font-mono text-xs text-muted-foreground tracking-[0.1em]">
-                  // signal_not_yet_acquired
+                  // they_will_be_deployed_here_and_on_GitHub
                 </p>
               </div>
             </div>
