@@ -1,10 +1,16 @@
 import { motion } from "framer-motion";
 
-const links = [
+// Keep contact email configurable so we don't hard-code addresses in the repo.
+const contactEmail = import.meta.env.VITE_CONTACT_EMAIL as string | undefined;
+
+const baseLinks = [
   { label: "GitHub", href: "https://github.com/aliasist" },
   { label: "aliasist.com", href: "https://www.aliasist.com" },
-  { label: "Email Me Here", href: "mailto:dev@aliasist.com" },  // add mailto:
 ];
+
+const links = contactEmail
+  ? [...baseLinks, { label: "Email Me Here", href: `mailto:${contactEmail}` }]
+  : baseLinks;
 
 const ContactSection = () => {
   return (
@@ -38,12 +44,18 @@ const ContactSection = () => {
                   I will keep this website updates as much as possible during my schedule. Mods reach out! reach out!
               </p>
 
-              <a
-                href="mailto:dev@aliasist.com"
-                className="inline-block px-8 py-3.5 bg-electric text-foreground font-mono text-xs uppercase tracking-[0.1em] rounded-sm hover:bg-electric/85 transition-all hover:-translate-y-0.5"
-              >
-                Send a message ↗
-              </a>
+              {contactEmail ? (
+                <a
+                  href={`mailto:${contactEmail}`}
+                  className="inline-block px-8 py-3.5 bg-electric text-foreground font-mono text-xs uppercase tracking-[0.1em] rounded-sm hover:bg-electric/85 transition-all hover:-translate-y-0.5"
+                >
+                  Send a message ↗
+                </a>
+              ) : (
+                <span className="inline-block px-8 py-3.5 bg-electric/10 text-electric/70 font-mono text-xs uppercase tracking-[0.1em] rounded-sm">
+                  Email not configured
+                </span>
+              )}
             </div>
 
             {/* Right — links */}
