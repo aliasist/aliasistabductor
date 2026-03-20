@@ -31,3 +31,7 @@ Thumbs.db
 *.mp3
 *.wav
 *.flac
+
+# Accidental local artifacts
+io
+*.ps
