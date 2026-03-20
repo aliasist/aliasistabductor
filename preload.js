@@ -4,10 +4,10 @@ contextBridge.exposeInMainWorld('aliasist', {
   browseSave:    (name)      => ipcRenderer.invoke('browse-save', name),
   downloadFile:  (url, save) => ipcRenderer.invoke('download-file', url, save),
   abortDownload: ()          => ipcRenderer.send('abort-download'),
-  onProgress:    (cb)        => ipcRenderer.on('dl-progress', (_, d) => cb(d)),
-  onMeta:        (cb)        => ipcRenderer.on('dl-meta', (_, d) => cb(d)),
-  onStatus:      (cb)        => ipcRenderer.on('dl-status', (_, d) => cb(d)),
   winMinimize:   ()          => ipcRenderer.send('win-minimize'),
   winMaximize:   ()          => ipcRenderer.send('win-maximize'),
   winClose:      ()          => ipcRenderer.send('win-close'),
+  onProgress:   (cb)         => ipcRenderer.on('dl-progress', (_, d) => cb(d)),
+  onStatus:     (cb)         => ipcRenderer.on('dl-status', (_, d) => cb(d)),
+  onMeta:       (cb)         => ipcRenderer.on('dl-meta', (_, d) => cb(d)),
 });

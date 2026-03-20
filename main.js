@@ -1,226 +1,308 @@
 const { app, BrowserWindow, ipcMain, dialog } = require('electron');
 const path = require('path');
-const os = require('os');
 const fs = require('fs');
-const https = require('https');
-const http = require('http');
-const { URL } = require('url');
-const { spawn } = require('child_process');
+const { spawn, spawnSync } = require('child_process');
 
 if (process.platform === 'win32') app.setAppUserModelId('com.aliasist.files.abductor');
 
-let mainWindow, activeRequest = null, activeYtdlp = null;
+let mainWindow;
 const DL_DIR = path.join(app.getPath('downloads'), 'Aliasist');
-let abducteeCounter = 0;
+let currentProcess = null;
+let abortRequested = false;
 
 function ensureDir(d) {
   if (!fs.existsSync(d)) fs.mkdirSync(d, { recursive: true });
 }
 
-function initAbducteeCounter() {
-  ensureDir(DL_DIR);
-  try {
-    const files = fs.readdirSync(DL_DIR);
-    files.forEach(function(f) {
-      var m = f.match(/^abductee_(\d+)/);
-      if (m) {
-        var n = parseInt(m[1]);
-        if (n >= abducteeCounter) abducteeCounter = n + 1;
-      }
-    });
-  } catch (e) {}
-  if (abducteeCounter === 0) abducteeCounter = 1;
-}
-
-function nextAbducteeName(ext) {
-  var name = 'abductee_' + abducteeCounter + (ext || '.bin');
-  abducteeCounter++;
-  return name;
-}
-
 function createWindow() {
-  initAbducteeCounter();
+  ensureDir(DL_DIR);
   mainWindow = new BrowserWindow({
     width: 800,
     height: 580,
-    minWidth: 640,
-    minHeight: 500,
     backgroundColor: '#05080d',
     icon: path.join(__dirname, 'assets', 'alien_icon.ico'),
     webPreferences: {
-      preload: path.join(__dirname, 'preload.js'),
+      preload: path.join(__dirname, 'preload.js'), // CRITICAL: Points to the bridge
       contextIsolation: true,
       nodeIntegration: false
     },
     frame: false,
     show: false
   });
-  mainWindow.loadFile('index.html');
-  mainWindow.once('ready-to-show', function() { mainWindow.show(); });
+
+  // Load the file ONLY once using an absolute path
+  mainWindow.loadFile(path.join(__dirname, 'index.html'));
+  mainWindow.once('ready-to-show', () => mainWindow.show());
 }
+
+// --- IPC LISTENERS (The Bridge Receivers) ---
+ipcMain.on('win-minimize', () => mainWindow.minimize());
+ipcMain.on('win-maximize', () => {
+  mainWindow.isMaximized() ? mainWindow.unmaximize() : mainWindow.maximize();
+});
+ipcMain.on('win-close', () => mainWindow.close());
+
+ipcMain.handle('get-dl-dir', () => DL_DIR);
+
+ipcMain.handle('browse-save', async (event, defaultName) => {
+  const result = await dialog.showSaveDialog(mainWindow, {
+    defaultPath: path.join(DL_DIR, defaultName)
+  });
+  return result.filePath; // Returns the string path back to renderer
+});
+
+ipcMain.handle('download-file', async (event, url, savePath) => {
+  return new Promise((resolve, reject) => {
+    // On Windows, it looks for yt-dlp.exe. On Linux, just yt-dlp.
+    const cmd = process.platform === 'win32' ? 'yt-dlp.exe' : 'yt-dlp';
+    
+    abortRequested = false;
+
+    // For merged mp4, make yt-dlp write to a deterministic template.
+    // We treat the user-provided savePath as a "base" and let yt-dlp choose ext,
+    // while we still report a finalPath of `${base}.mp4`.
+    const parsedBase = savePath.replace(/\.[a-zA-Z0-9]+$/, "");
+    const outTemplate = `${parsedBase}.%(ext)s`;
+    const finalPath = `${parsedBase}.mp4`;
+    const outDir = path.dirname(parsedBase);
+    ensureDir(outDir);
+
+    // Force downloading best video+audio and merging to mp4.
+    const args = [
+      url,
+      '--newline',
+      '--no-playlist',
+      '--format',
+      // Require video+audio (no audio-only fallback).
+      // If video isn't available/mergeable, yt-dlp should fail instead of producing audio-only output.
+      // Prefer H.264 (avc1/*) video + AAC (mp4a/*) audio so Ubuntu's built-in player can decode.
+      // If H.264/AAC isn't available for the video, yt-dlp should fail rather than output AV1/Opus.
+      'bestvideo[vcodec^=avc1]+bestaudio[acodec^=mp4a]/bestvideo[vcodec^=avc1]+bestaudio[ext=m4a]',
+      '--merge-output-format',
+      'mp4',
+      // Output template: `${base}.%(ext)s`
+      '-o',
+      outTemplate,
+      // Emit progress updates more consistently.
+      '--progress',
+      '--no-warnings',
+      '--restrict-filenames',
+    ];
+    // Parse yt-dlp progress output for smooth UX.
+    // yt-dlp often writes progress to stderr, so we listen to both.
+    const ls = spawn(cmd, args, { stdio: ['ignore', 'pipe', 'pipe'] });
+    currentProcess = ls;
+    let stdoutBuffer = '';
+    let stderrBuffer = '';
+    let stderrTail = '';
+    let stdoutTail = '';
+    let lastProgressSentAt = 0;
+
+    function parseSizeToBytes(sizeStr) {
+      // Accepts values like: "12.3MiB", "450KiB", "1.2GB", "999B"
+      const m = String(sizeStr).trim().match(/^([\d.]+)\s*([KMGTP]?i?B)$/i);
+      if (!m) return null;
+      const value = parseFloat(m[1]);
+      const unit = m[2].toLowerCase();
+      const isBinary = unit.includes('i');
+      const base = isBinary ? 1024 : 1000;
+      const exp = unit.startsWith('k') ? 1
+        : unit.startsWith('m') ? 2
+        : unit.startsWith('g') ? 3
+        : unit.startsWith('t') ? 4
+        : unit.startsWith('p') ? 5
+        : 0;
+      return Math.round(value * Math.pow(base, exp));
+    }
+
+    function extractProgress(line) {
+      // With `--progress`, yt-dlp commonly outputs carriage-return updates that
+      // may not include the literal "[download]" prefix.
+      // We parse percent from any line that looks like a download progress line.
+      if (!/%/.test(line)) return null;
+      if (!/download/i.test(line)) return null;
+
+      const pctMatch = line.match(/([\d.]+)%/);
+      if (!pctMatch) return null;
+      const pct = parseFloat(pctMatch[1]);
+
+      // Total (after "of") and speed (after "at") if present.
+      let total = null;
+      const totalMatch = line.match(/\sof\s+([\d.]+\s*[KMGTP]?i?B)\b/i);
+      if (totalMatch) total = parseSizeToBytes(totalMatch[1]);
+
+      let speed = null;
+      const speedMatch = line.match(/\sat\s+([\d.]+\s*[KMGTP]?i?B)\/s\b/i);
+      if (speedMatch) speed = parseSizeToBytes(speedMatch[1]);
+
+      return { pct, total, speed };
+    }
+
+    function feedChunk(isErr, chunk) {
+      const buf = isErr ? stderrBuffer : stdoutBuffer;
+      const next = buf + chunk.toString();
+      // `--progress` often uses carriage returns (no newlines). Split on both
+      // newline and carriage return so we can parse updates immediately.
+      const parts = next.split(/\r?\n|\r/);
+      const last = parts.pop();
+      if (isErr) stderrBuffer = last;
+      else stdoutBuffer = last;
+
+      if (isErr) {
+        // Keep a bounded tail for useful error messages.
+        stderrTail = (stderrTail + chunk.toString()).slice(-8000);
+      }
+      if (!isErr) {
+        // Some yt-dlp errors/progress end up on stdout depending on flags/version.
+        stdoutTail = (stdoutTail + chunk.toString()).slice(-8000);
+      }
+      for (const line of parts) {
+        const p = extractProgress(line);
+        if (!p) continue;
+        const now = Date.now();
+        // Throttle IPC to keep UI smooth (and reduce message spam).
+        if (p.pct < 100 && now - lastProgressSentAt < 120) continue;
+        lastProgressSentAt = now;
+        mainWindow?.webContents?.send('dl-progress', p);
+      }
+    }
+
+    ls.stdout.on('data', (d) => feedChunk(false, d));
+    ls.stderr.on('data', (d) => feedChunk(true, d));
+
+    ls.on('close', (code) => {
+      currentProcess = null;
+      if (abortRequested) {
+        return reject(new Error('abort'));
+      }
+      if (code !== 0) {
+        const detailParts = [
+          stderrTail,
+          stdoutTail,
+          stderrBuffer,
+          stdoutBuffer,
+        ]
+          .map((s) => (s == null ? '' : String(s)))
+          .join('\n')
+          .trim();
+        const tailMsg = detailParts ? `\n\n${detailParts}` : '\n\n(no yt-dlp output captured)'; // Helps debugging
+        return reject(new Error(`Abduction failed: ${code}${tailMsg}`));
+      }
+
+      // Report the final merged artifact we expect from `--merge-output-format mp4`.
+      let size = 0;
+      try {
+        if (!fs.existsSync(finalPath)) {
+          return reject(new Error(`Download completed but expected file was not found: ${finalPath}`));
+        }
+
+        // Post-step: move MP4 "moov" atom to the beginning for broad player compatibility
+        // (Totem/Ubuntu player is sensitive to this; mpv is usually not).
+        try {
+          const faststartPath = finalPath.replace(/\.mp4$/i, "_faststart.mp4");
+          const remux = spawnSync(
+            'ffmpeg',
+            ['-y', '-i', finalPath, '-c', 'copy', '-movflags', '+faststart', faststartPath],
+            { encoding: 'utf8' }
+          );
+          if (remux && remux.status === 0 && fs.existsSync(faststartPath)) {
+            fs.unlinkSync(finalPath);
+            fs.renameSync(faststartPath, finalPath);
+          }
+        } catch {
+          // If ffmpeg/faststart fails, keep the original merged file.
+        }
+
+        // Post-download validation: ensure mp4 actually contains H.264 + AAC.
+        // This prevents "audio-only remuxed to mp4" and also avoids AV1/Opus outputs
+        // that can appear as a grey screen in Ubuntu's default player.
+        try {
+          const vProbe = spawnSync(
+            'ffprobe',
+            [
+              '-v',
+              'error',
+              '-select_streams',
+              'v:0',
+              '-show_entries',
+              'stream=codec_name',
+              '-of',
+              'default=nw=1:nk=1',
+              finalPath,
+            ],
+            { encoding: 'utf8' }
+          );
+          const vCodec = (vProbe.stdout || '').toString().trim().toLowerCase();
+          if (!vCodec) {
+            return reject(new Error(`Download completed but output has no video stream: ${finalPath}`));
+          }
+
+          const aProbe = spawnSync(
+            'ffprobe',
+            [
+              '-v',
+              'error',
+              '-select_streams',
+              'a:0',
+              '-show_entries',
+              'stream=codec_name',
+              '-of',
+              'default=nw=1:nk=1',
+              finalPath,
+            ],
+            { encoding: 'utf8' }
+          );
+          const aCodec = (aProbe.stdout || '').toString().trim().toLowerCase();
+          if (!aCodec) {
+            return reject(new Error(`Download completed but output has no audio stream: ${finalPath}`));
+          }
+
+          const looksH264 = vCodec.includes('h264') || vCodec.includes('avc');
+          const looksAac = aCodec.includes('aac') || aCodec.includes('mp4a');
+
+          if (!looksH264 || !looksAac) {
+            return reject(
+              new Error(
+                `Download completed but codecs are not H.264 + AAC (video=${vCodec || 'unknown'}, audio=${aCodec || 'unknown'}): ${finalPath}`
+              )
+            );
+          }
+        } catch {
+          // If ffprobe isn't available, skip the validation.
+        }
+
+        const stat = fs.statSync(finalPath);
+        size = stat.size;
+      } catch {
+        // If for some reason the final path can't be stat'ed, keep size=0.
+      }
+
+      mainWindow?.webContents?.send('dl-meta', { finalPath, total: null });
+      return resolve({ success: true, path: finalPath, size });
+    });
+
+    ls.on('error', (err) => reject(new Error(`Beam failure: ${err.message}`)));
+
+  });
+});
+
+ipcMain.on('abort-download', () => {
+  abortRequested = true;
+  if (!currentProcess) return;
+  try {
+    currentProcess.kill('SIGTERM');
+  } catch {
+    // Best-effort abort.
+  }
+  // Escalate if needed (some processes ignore SIGTERM).
+  setTimeout(() => {
+    try {
+      if (currentProcess) currentProcess.kill('SIGKILL');
+    } catch {
+      // ignore
+    }
+  }, 2000);
+});
 
 app.whenReady().then(createWindow);
-app.on('window-all-closed', function() { if (process.platform !== 'darwin') app.quit(); });
-app.on('activate', function() { if (BrowserWindow.getAllWindows().length === 0) createWindow(); });
-
-ipcMain.on('win-minimize', function() { mainWindow.minimize(); });
-ipcMain.on('win-maximize', function() { mainWindow.isMaximized() ? mainWindow.unmaximize() : mainWindow.maximize(); });
-ipcMain.on('win-close', function() { mainWindow.close(); });
-ipcMain.handle('get-dl-dir', function() { return DL_DIR; });
-ipcMain.handle('browse-save', async (event, options) => {
-  const result = await dialog.showSaveDialog(mainWindow, options);
-  return result;
-});
-
-// --- Handler for downloading files ---
-ipcMain.handle('download-file', async (event, ...args) => {
-  let [url, savePath] = args;
-  console.log('Step 1: download-file invoked', { url, savePath });
-
-  // Fallback for savePath
-  if (!savePath || typeof savePath !== 'string' || savePath === 'undefined') {
-    savePath = path.join(DL_DIR, nextAbducteeName('.mp4'));
-    console.log('Step 2: Fallback savePath applied', savePath);
-  }
-  console.log('Step 3: Final url/savePath', { url, savePath });
-
-  // Block non-video URLs 
-  if (!/^https?:\/\/(www\.)?youtube\.com\/watch\?v=/.test(url) && !/^https?:\/\/youtu\.be\//.test(url)) {
-    mainWindow.webContents.send('dl-status', { text: 'Please enter a direct video URL (not a search or playlist page).' });
-    return { success: false, error: 'Invalid or unsupported URL type' };
-  }
-
-  // Always resolves with success/error object
-  return new Promise(function(resolve, reject) {
-    let saveDir = path.dirname(savePath);
-    ytdlpDownload(url, saveDir, savePath, resolve, reject);
-  });
-});
-
-// Streaming site detection
-var STREAM_SITES = /youtube\.com|youtu\.be|vimeo\.com|dailymotion\.com|twitch\.tv|soundcloud\.com|twitter\.com|x\.com|instagram\.com|tiktok\.com|facebook\.com|reddit\.com|streamable\.com|bitchute\.com|rumble\.com|odysee\.com|bilibili\.com|v\.redd\.it|clips\.twitch\.tv/i;
-
-function isStreamingSite(url) {
-  return STREAM_SITES.test(url);
-}
-
-// MIME map (keep as is)
-var MIME_MAP = {
-  'video/mp4':'.mp4',
-  'video/webm':'.webm',
-  'video/quicktime':'.mov',
-  'video/x-matroska':'.mkv',
-  'video/x-msvideo':'.avi',
-  'audio/mpeg':'.mp3',
-  'audio/ogg':'.ogg',
-  'audio/wav':'.wav',
-  'audio/flac':'.flac',
-  'image/jpeg':'.jpg',
-  'image/png':'.png',
-  'image/gif':'.gif',
-  'image/webp':'.webp',
-  'application/pdf':'.pdf',
-  'application/zip':'.zip',
-  'application/x-rar-compressed':'.rar',
-  'application/x-7z-compressed':'.7z',
-  'application/gzip':'.gz',
-  'text/plain':'.txt',
-  'application/json':'.json',
-  'application/octet-stream':'.bin',
-  'application/x-msdownload':'.exe'
-};
-
-var BAD_NAMES = ['download','file','index','index.html','index.htm','default','watch',''];
-var JUNK_EXTS = ['.watch','.download','.tmp','.partial','.crdownload','.part','.html','.htm'];
-
-function resolveFilename(url, headers) {
-  var name = null;
-  var ext = '';
-
-  var cd = headers['content-disposition'] || '';
-  if (cd) {
-    var m = cd.match(/filename\*\s*=\s*UTF-8''(.+)/i);
-    if (m) {
-      name = decodeURIComponent(m[1].trim().replace(/"/g, ''));
-    } else {
-      m = cd.match(/filename\s*=\s*"?([^";]+)"?/i);
-      if (m) name = m[1].trim().replace(/"/g, '');
-    }
-  }
-
-  if (!name || BAD_NAMES.indexOf(name.toLowerCase().replace(/\.[^.]+$/, '')) !== -1) {
-    try {
-      var urlPath = new URL(url).pathname;
-      var urlName = decodeURIComponent(urlPath.split('/').pop() || '');
-      if (urlName && urlName !== '/' && BAD_NAMES.indexOf(urlName.toLowerCase().replace(/\.[^.]+$/, '')) === -1) {
-        name = urlName;
-      }
-    } catch (e) {}
-  }
-
-  var ct = (headers['content-type'] || '').split(';')[0].trim().toLowerCase();
-  if (ct && MIME_MAP[ct]) ext = MIME_MAP[ct];
-
-  if (name) {
-    name = name.replace(/[<>:"/\\|?*\x00-\x1f]/g, '_').trim();
-    var currentExt = path.extname(name).toLowerCase();
-    if (JUNK_EXTS.indexOf(currentExt) !== -1) {
-      name = path.basename(name, currentExt);
-      if (ext) name += ext;
-    }
-    if (!path.extname(name) && ext) name += ext;
-    if (name.length > 120) name = name.substring(0, 110) + path.extname(name);
-  }
-
-  if (!name || name.length < 2) name = nextAbducteeName(ext || '.bin');
-  return name;
-}
-console.log('download-file: resolveFilename examples:',
-  resolveFilename('https://example.com/video.mp4', {'content-disposition': 'attachment; filename="example_video.mp4"'}),
-  resolveFilename('https://example.com/download', {'content-type': 'video/mp4'}),
-  resolveFilename('https://example.com/file.unknown', {})
-);
-
-// --- yt-dlp download --- (CLEANED)
-function ytdlpDownload(url, saveDir, savePath, resolve, reject) {
-  ensureDir(saveDir);
-
-  // Standalone yt-dlp path, adapt for your platform as needed
-  let ytdlpPath = path.join(os.homedir(), '.local', 'bin', 'yt-dlp');
-  if (process.platform === 'win32') ytdlpPath = 'yt-dlp'; // adjust if on Windows and PATH is set
-
-  // Output template: usually "savePath"
-  const outTemplate = savePath.endsWith('.mp4') ? savePath : savePath + '.mp4';
-
-  const args = [
-    url,
-    '-f', 'bestvideo+bestaudio/best',
-    '--merge-output-format', 'mp4',
-    '--no-playlist',
-    '--force-overwrites',
-    '--newline',
-    '-o', outTemplate
-  ];
-
-  console.log('yt-dlp spawn:', ytdlpPath, args);
-
-  const activeYtdlp = spawn(ytdlpPath, args);
-
-  activeYtdlp.stdout.on('data', data => {
-    console.log('yt-dlp stdout:', data.toString());
-  });
-  activeYtdlp.stderr.on('data', data => {
-    console.error('yt-dlp stderr:', data.toString());
-  });
-  activeYtdlp.on('close', code => {
-    console.log('yt-dlp exited with code:', code);
-    if (code === 0) resolve({ success: true });
-    else reject(new Error('yt-dlp failed with code ' + code));
-  });
-  activeYtdlp.on('error', err => {
-    reject(new Error('Failed to spawn yt-dlp: ' + err.message));
-  });
-}
-
-// Direct download logic *i may put later*  ...
-
+app.on('window-all-closed', () => { if (process.platform !== 'darwin') app.quit(); });

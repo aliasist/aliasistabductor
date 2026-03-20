@@ -262,12 +262,19 @@ document.addEventListener('DOMContentLoaded', async () => {
   if ($('tbMax'))   $('tbMax').onclick   = () => window.aliasist.winMaximize();
   if ($('tbClose')) $('tbClose').onclick = () => window.aliasist.winClose();
 
-  // Button ripple
+  // Button ripple (cache rect on enter to avoid layout work each mousemove)
   document.querySelectorAll('.btn').forEach(b => {
+    let rect = null;
+    b.addEventListener('mouseenter', () => {
+      rect = b.getBoundingClientRect();
+    });
     b.addEventListener('mousemove', e => {
-      const r = b.getBoundingClientRect();
-      b.style.setProperty('--mx', (e.clientX - r.left) + 'px');
-      b.style.setProperty('--my', (e.clientY - r.top) + 'px');
+      if (!rect) rect = b.getBoundingClientRect();
+      b.style.setProperty('--mx', (e.clientX - rect.left) + 'px');
+      b.style.setProperty('--my', (e.clientY - rect.top) + 'px');
+    });
+    b.addEventListener('mouseleave', () => {
+      rect = null;
     });
   });
 
@@ -299,8 +306,20 @@ document.addEventListener('DOMContentLoaded', async () => {
 
   // Helpers
   function fmt(b) {
-    for (const u of ['B','KB','MB','GB']) { if (b < 1024) return b.toFixed(1) + ' ' + u; b /= 1024; }
-    return b.toFixed(1) + ' TB';
+    if (typeof b !== 'number' || !Number.isFinite(b)) return '';
+    let n = b;
+    for (const u of ['B','KB','MB','GB']) {
+      if (n < 1024) return n.toFixed(1) + ' ' + u;
+      n /= 1024;
+    }
+    return n.toFixed(1) + ' TB';
+  }
+
+  function setProgress(pct) {
+    const v = typeof pct === 'number' && Number.isFinite(pct) ? pct : 0;
+    const clamped = Math.max(0, Math.min(100, v));
+    // CSS uses `transform: scaleX(var(--sx))` for smoother updates.
+    bar.style.setProperty('--sx', String(clamped / 100));
   }
 
   function guessName(url) {
@@ -327,7 +346,8 @@ document.addEventListener('DOMContentLoaded', async () => {
     const fullUrl = urlIn.value.trim();
     if (!fullUrl.startsWith('http://') && !fullUrl.startsWith('https://')) return;
     const name = guessName(fullUrl);
-    saveIn.value = dlDir + '\\' + name;
+    const sep = dlDir.endsWith('/') || dlDir.endsWith('\\') ? '' : '/';
+    saveIn.value = dlDir + sep + name;
     if (STREAM_RE.test(fullUrl)) {
       statusText.textContent = '🎬 Streaming target detected — yt-dlp will handle this.';
       if (/youtube\.com|youtu\.be/i.test(fullUrl)) {
@@ -385,16 +405,29 @@ document.addEventListener('DOMContentLoaded', async () => {
   window.aliasist.onProgress(d => {
     currentSpeed = d.speed || 0;
     if (d.ytInfo) {
-      bar.style.width = d.pct + '%';
+      setProgress(d.pct);
       statusText.textContent = '🛸 Abducting... ' + d.pct.toFixed(1) + '% — ' + d.ytInfo;
       sizeInfo.textContent = d.pct.toFixed(1) + '%';
     } else if (d.pct > 0) {
-      bar.style.width = d.pct + '%';
-      statusText.textContent = '🛸 Abducting... ' + d.pct.toFixed(1) + '% — ' + fmt(d.speed) + '/s';
-      sizeInfo.textContent = fmt(d.downloaded) + ' / ' + fmt(d.total);
+      setProgress(d.pct);
+      const speedTxt = fmt(d.speed);
+      const pctTxt = d.pct.toFixed(1);
+      statusText.textContent = speedTxt
+        ? '🛸 Abducting... ' + pctTxt + '% — ' + speedTxt + '/s'
+        : '🛸 Abducting... ' + pctTxt + '%';
+
+      if (d.downloaded != null || d.total != null) {
+        const dlTxt = fmt(d.downloaded);
+        const totalTxt = fmt(d.total);
+        sizeInfo.textContent =
+          dlTxt && totalTxt ? dlTxt + ' / ' + totalTxt : (totalTxt || dlTxt);
+      } else {
+        sizeInfo.textContent = '';
+      }
     } else {
-      statusText.textContent = '🛸 Abducting... ' + fmt(d.downloaded) + ' — ' + fmt(d.speed) + '/s';
-      sizeInfo.textContent = fmt(d.downloaded);
+      setProgress(0);
+      statusText.textContent = '🛸 Abducting...';
+      sizeInfo.textContent = '';
     }
   });
 
@@ -413,11 +446,11 @@ document.addEventListener('DOMContentLoaded', async () => {
     window.aliasist.abortDownload();
     statusText.textContent = '🚨 Abduction aborted!';
     joke.textContent = pick(J_ABORT);
-    bar.style.width = '0%';
+    setProgress(0);
     sizeInfo.textContent = '';
     reset();
   };
-
+   
   // Download
   abductBtn.onclick = async () => {
     if (busy) return;
@@ -451,7 +484,7 @@ document.addEventListener('DOMContentLoaded', async () => {
     abductBtn.textContent = '🛸 Abducting...';
     abductBtn.classList.add('working');
     ejectBtn.disabled = false;
-    bar.style.width = '0%';
+    setProgress(0);
     sizeInfo.textContent = '';
     statusText.textContent = '🛸 Tractor beam engaged!';
 
@@ -469,7 +502,7 @@ document.addEventListener('DOMContentLoaded', async () => {
 
     try {
       const r = await window.aliasist.downloadFile(url, saveIn.value);
-      bar.style.width = '100%';
+      setProgress(100);
       statusText.textContent = '✅ Abduction successful! Cargo secured.';
       joke.textContent = pick(J_DONE);
       sizeInfo.textContent = '📦 Cargo: ' + fmt(r.size);
@@ -478,7 +511,8 @@ document.addEventListener('DOMContentLoaded', async () => {
       if (!err.message.includes('abort') && !err.message.includes('destroy')) {
         statusText.textContent = '❌ Abduction failed!';
         joke.textContent = pick(J_ERR);
-        sizeInfo.textContent = err.message.substring(0, 80);
+        // Show more detail so we can see the real yt-dlp error.
+        sizeInfo.textContent = String(err.message).slice(0, 400);
       }
     } finally {
       clearInterval(jokeTimer);
@@ -494,6 +528,7 @@ document.addEventListener('DOMContentLoaded', async () => {
     abductBtn.disabled = false;
     abductBtn.textContent = '🛸 Abduct File';
     abductBtn.classList.remove('working');
+    setProgress(0);
     ejectBtn.disabled = true;
   }
 

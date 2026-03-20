@@ -24,16 +24,12 @@ Built with a custom animated splash screen, a custom draggable title bar, downlo
 
 ## Screenshots
 
-> Add your screenshots here (recommended):
+Add screenshots in this folder so users can preview the app:
 - `assets/screenshots/splash.png`
 - `assets/screenshots/app.png`
 
-Example:
-
-```md
 ![Splash](assets/screenshots/splash.png)
 ![App](assets/screenshots/app.png)
-```
 
 ---
 
