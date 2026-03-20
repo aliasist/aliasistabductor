@@ -5,7 +5,7 @@ const posts = [
     freq: "FREQ-001",
     tag: "AiSec",
     date: "Coming Soon",
-    title: "What adversarial AI actually means — and why it matters now",
+    title: "AiSec, PenTesting, and more on a mission to fortify the future of AI.",
     excerpt:
       "The threat landscape is shifting. AI systems aren't just targets anymore — they're vectors. Here's what I'm learning about the field I'm building toward.",
   },
@@ -15,15 +15,15 @@ const posts = [
     date: "Coming Soon",
     title: "Building Aliaist-Files-Abductor: why I made a tool nobody asked for",
     excerpt:
-      "The best projects start with personal problems. Here's how a messy downloads folder turned into a CLI tool with an alien obsession.",
+      "creating tools for the future.",
   },
   {
-    freq: "FREQ-003",
+    freq: "Under-construction.",
     tag: "Career",
     date: "Coming Soon",
     title: "Self-taught to CS degree: what nobody tells you about the gap",
     excerpt:
-      "The jump from teaching yourself to formal computer science isn't just about syntax. It's about unlearning some things and doubling down on others.",
+      "It's a new world, and we must keep up. We must be prepared for the future.",
   },
 ];
 
@@ -32,7 +32,7 @@ const TransmissionsSection = () => {
     <section id="transmissions" className="py-28 px-6 bg-card">
       <div className="max-w-5xl mx-auto">
         <div className="classified-divider mb-16">
-          <span>Intercepts // Transmissions</span>
+          <span>Blog // Forum coming soon</span>
         </div>
 
         <motion.div
@@ -42,7 +42,7 @@ const TransmissionsSection = () => {
           transition={{ duration: 0.6 }}
         >
           <h2 className="text-3xl sm:text-4xl font-bold text-foreground mb-12 tracking-tight">
-            Transmissions.
+            Tech is changing fast, we must keep up.
           </h2>
 
           <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-0.5">
@@ -75,7 +75,7 @@ const TransmissionsSection = () => {
                 </p>
 
                 <div className="font-mono text-[11px] uppercase tracking-[0.1em] text-electric flex items-center gap-1.5 opacity-0 group-hover:opacity-100 transition-opacity">
-                  Read transmission ↗
+                  Read blog post ↗
                 </div>
               </div>
             ))}

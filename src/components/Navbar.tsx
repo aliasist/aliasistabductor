@@ -1,6 +1,6 @@
 import  React, { useState, useEffect } from "react";
 import { motion } from "framer-motion";
-import logo from "@/assets/OLD.png";
+import logo from "@/assets/logo-transparent.png";
 
 const navLinks = [
   { label: "About", href: "#about" },

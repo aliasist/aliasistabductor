@@ -36,22 +36,20 @@ const AboutSection = () => {
             <div className="space-y-4 text-base leading-relaxed text-foreground/70">
               <p>
                 I've been poking at code since I was a kid —{" "}
-                <strong className="text-foreground font-semibold">HTML, CSS</strong>, figuring out
-                how things work by breaking them. No classroom. No roadmap. Just
-                curiosity and a terminal.
+                <strong className="text-foreground font-semibold">HTML, CSS</strong>, It's always been a passion of mine. It's been interesting with the advent of AI to see where the new wave of tech is heading. It's something I want to be a part of, and learn more about.  
               </p>
               <p>
                 Now I'm studying{" "}
                 <strong className="text-foreground font-semibold">Computer Information Systems</strong>{" "}
-                with plans to transfer into a CS degree, with my sights set on{" "}
+                Focusing on trending software. and developments. " "
                 <strong className="text-foreground font-semibold">
-                  AI Security and Adversarial Defense
+                  Scripts and Tools for AI Development coming soon... 
                 </strong>
                 . Aliasist is where I build, experiment, and ship real tools while I
                 work toward that.
               </p>
               <p>
-                The degree is new.{" "}
+                Python, JavaScript, CSS, and HTML.{" "}
                 <strong className="text-foreground font-semibold">The obsession isn't.</strong>
               </p>
             </div>

@@ -42,11 +42,10 @@ const HeroSection = () => {
             transition={{ delay: 0.5, duration: 0.6 }}
           >
             <p className="text-xl sm:text-2xl font-medium text-foreground/85 mb-3 tracking-wide">
-              Adversarial by nature. Defensive by design. 
-              AiSec specialist on a mission to fortify the future of AI.
+              Open Source Security & Software Development (AIdevOps) 
             </p>
             <p className="text-sm font-mono text-muted-foreground mb-14 tracking-[0.08em]">
-              // Not all threats come from this world.
+              // Currently in development... but stay tuned!
             </p>
           </motion.div>
 
