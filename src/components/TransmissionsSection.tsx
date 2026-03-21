@@ -74,9 +74,12 @@ const TransmissionsSection = () => {
                   {post.excerpt}
                 </p>
 
-                <div className="font-mono text-[11px] uppercase tracking-[0.1em] text-electric flex items-center gap-1.5 opacity-0 group-hover:opacity-100 transition-opacity">
+                <a
+                  href="/blog"
+                  className="font-mono text-[11px] uppercase tracking-[0.1em] text-electric flex items-center gap-1.5 opacity-0 group-hover:opacity-100 transition-opacity"
+                >
                   Read blog post ↗
-                </div>
+                </a>
               </div>
             ))}
           </div>
