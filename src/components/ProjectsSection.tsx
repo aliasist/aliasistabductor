@@ -1,11 +1,13 @@
 import { motion } from "framer-motion";
-
-const releaseTag = "#v2.7.0";
+import appPreview from "@/assets/app.png";
+const releaseTag = "%23v2.7.0";
 const releaseBaseUrl = `https://github.com/aliasist/aliasistabductor/releases/download/${releaseTag}`;
 
 const appImageFile = "Aliasist.Files.Abductor-2.7.0.AppImage";
 const snapFile = "aliasist-files-abductor_2.7.0_amd64.snap";
 const windowsExeFile = "Aliasist.Files.Abductor.Setup.2.7.0.exe";
+
+
 
 const downloadLinks = {
   appImage: `${releaseBaseUrl}/${encodeURIComponent(appImageFile)}`,
@@ -18,7 +20,7 @@ const projects = [
     name: "Aliaist-Files-Abductor",
     description:
       "A file organization and automation tool that abducts your messy directories and deposits them exactly where they belong. Built with a clean CLI interface and an alien theme that doesn't apologize for itself. Does the work. No questions asked.",
-    tech: ["Python", "CLI", "File Automation"],
+    tech: ["Python", "TypeScript", "MachineLearning", "File Automation"],
     github: `https://github.com/aliasist/aliasistabductor/releases/tag/${releaseTag}`,
     downloads: [
       { label: "AppImage", href: downloadLinks.appImage },
@@ -73,6 +75,14 @@ const ProjectsSection = () => {
                 <h3 className="text-2xl sm:text-3xl font-bold text-background mb-4 font-mono tracking-tight">
                   {project.name}
                 </h3>
+                <div className="mb-8">
+  <img
+    src={appPreview}
+    alt={`${project.name} preview`}
+    className="w-full max-w-3xl rounded-md border border-background/10 shadow-lg"
+    loading="lazy"
+  />
+</div>
 
                 <p className="text-sm text-background/60 leading-relaxed mb-8 max-w-2xl">
                   {project.description}

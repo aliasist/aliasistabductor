@@ -1,4 +1,5 @@
 import { motion } from "framer-motion";
+import saucerIcon from "@/assets/saucer.svg";
 
 const HeroSection = () => {
   return (
@@ -6,8 +7,8 @@ const HeroSection = () => {
       <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_center,_hsl(165_90%_42%_/_0.05)_0%,_transparent_65%)]" />
 
       <div className="absolute top-24 right-6 sm:right-12 hidden sm:flex items-center gap-2 font-mono text-[10px] uppercase tracking-[0.15em] text-muted-foreground border border-border px-3 py-1.5 opacity-60">
-        <span className="text-electric animate-pulse">▮</span>
-        Signal Detected // Sector 7G
+        <img src={saucerIcon} alt="" className="w-4 h-4 opacity-80" />
+        Artificial Artifacts // Mission Log
       </div>
 
       <div className="relative z-10 max-w-5xl mx-auto px-6 text-center">
@@ -48,7 +49,7 @@ const HeroSection = () => {
               // Currently in development... but stay tuned!
             </p>
           </motion.div>
-
+          .
           <motion.div
             initial={{ opacity: 0, y: 10 }}
             animate={{ opacity: 1, y: 0 }}

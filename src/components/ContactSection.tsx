@@ -1,11 +1,11 @@
 import { motion } from "framer-motion";
 
-// Keep contact email configurable so we don't hard-code addresses in the repo.
+// Contact email is configurable = no hard-coding addresses in the repo ^^
 const contactEmail = import.meta.env.VITE_CONTACT_EMAIL as string | undefined;
 
 const baseLinks = [
   { label: "GitHub", href: "https://github.com/aliasist" },
-  { label: "aliasist.com", href: "https://www.aliasist.com" },
+  { label: "aliasist.com", href: "www.aliasist.com" },
 ];
 
 const links = contactEmail
@@ -41,7 +41,7 @@ const ContactSection = () => {
                 <strong className="text-background font-semibold">
                   Open to collaborations, internships, and interesting problems in the field. 
                 </strong>{" "}
-                  I will keep this website updates as much as possible during my schedule. Mods reach out! reach out!
+                  I will keep this website updated as much as possible during my schedule. I will adapt this into a portfolio website as I get better at understanding how these new langauges work together. If you would like work with me, or have any questions, feel free to reach out!
               </p>
 
               {contactEmail ? (
@@ -53,7 +53,7 @@ const ContactSection = () => {
                 </a>
               ) : (
                 <span className="inline-block px-8 py-3.5 bg-electric/10 text-electric/70 font-mono text-xs uppercase tracking-[0.1em] rounded-sm">
-                  Email not configured
+                  dev@aliasist.com
                 </span>
               )}
             </div>

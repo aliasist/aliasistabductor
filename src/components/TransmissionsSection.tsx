@@ -5,15 +5,15 @@ const posts = [
     freq: "FREQ-001",
     tag: "AiSec",
     date: "Coming Soon",
-    title: "AiSec, PenTesting, and more on a mission to fortify the future of AI.",
+    title: "AiSec, Debugging AI",
     excerpt:
       "The threat landscape is shifting. AI systems aren't just targets anymore — they're vectors. Here's what I'm learning about the field I'm building toward.",
   },
   {
-    freq: "FREQ-002",
+    freq: "Under-abduction",
     tag: "Projects",
     date: "Coming Soon",
-    title: "Building Aliaist-Files-Abductor: why I made a tool nobody asked for",
+    title: "This future of AI is a uncertain one, and we must be prepared.",
     excerpt:
       "creating tools for the future.",
   },
@@ -32,7 +32,7 @@ const TransmissionsSection = () => {
     <section id="transmissions" className="py-28 px-6 bg-card">
       <div className="max-w-5xl mx-auto">
         <div className="classified-divider mb-16">
-          <span>Blog // Forum coming soon</span>
+          <span>Blog // Coming Soon</span>
         </div>
 
         <motion.div
