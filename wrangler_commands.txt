@@ -1,0 +1,4 @@
+cd /home/blake/Desktop/aliasistabductor/web
+npm ci
+npm run build
+npx wrangler pages deploy ./dist --project-name aliasist-agent --branch main
