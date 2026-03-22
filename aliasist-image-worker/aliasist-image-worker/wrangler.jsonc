@@ -1,0 +1,14 @@
+{
+	"name": "aliasist-image-worker",
+	"main": "src/index.ts",
+	"compatibility_date": "2026-03-22",
+	"routes": [
+		{
+			"pattern": "dev.aliasist.com",
+			"custom_domain": true
+		}
+	],
+	"ai": {
+		"binding": "AI"
+	}
+}
