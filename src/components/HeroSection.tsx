@@ -1,5 +1,6 @@
 import { motion } from "framer-motion";
 import AlienEye from "./AlienEye";
+import Mascot from "./Mascot";
 import { playClick } from "@/hooks/useSound";
 import heroBanner from "@/assets/hero-banner.png";
 import badge from "@/assets/badge.png";
@@ -32,6 +33,16 @@ const HeroSection = () => {
       {/* Layered radial glows */}
       <div className="absolute inset-0 bg-[radial-gradient(ellipse_70%_50%_at_50%_35%,_hsl(165_90%_42%_/_0.06)_0%,_transparent_65%)] pointer-events-none" />
       <div className="absolute inset-0 bg-[radial-gradient(ellipse_40%_40%_at_50%_80%,_hsl(165_90%_42%_/_0.04)_0%,_transparent_70%)] pointer-events-none" />
+
+      {/* UFO Mascot — upper-left floating */}
+      <motion.div
+        initial={{ opacity: 0, x: -20 }}
+        animate={{ opacity: 1, x: 0 }}
+        transition={{ delay: 1.2, duration: 0.8 }}
+        className="absolute top-24 left-6 sm:left-12 hidden sm:block"
+      >
+        <Mascot />
+      </motion.div>
 
       {/* Top-right signal badge */}
       <motion.div
