@@ -10,7 +10,7 @@ Use this file when you forget what moved after a fast refactor. **The full marke
 | `app/` | **Aliasist Files Abductor** — Electron/desktop app (`package.json` name `aliasist-files-abductor`) |
 | `apps/` | **Suite clones** — separate git repos (DataSist, workers, etc.); see `apps/README.md` |
 | `images/` | Shared raster/SVG assets referenced via `@images/...` in Vite |
-| `public/` | Static files served as-is |
+| `public/` | Static files served as-is (includes **`_redirects`** for Cloudflare Pages SPA fallback) |
 | `index.html` | Vite entry |
 | `vite.config.ts` | Aliases: `@` → `src/`, `@images` → `images/` |
 

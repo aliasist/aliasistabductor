@@ -1,9 +1,10 @@
 import { useState, useRef, useEffect } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { playClick, playHover, playSuccess } from "@/hooks/useSound";
+import { readJsonBody, siteEndpoints } from "@/config/api";
 
 // All AI calls go through the llm-chat Cloudflare Worker — no API key in the browser
-const CHAT_ENDPOINT = "https://llm-chat.bchooper0730.workers.dev/api/chat";
+const CHAT_ENDPOINT = siteEndpoints.chatApi;
 
 const SYSTEM_PROMPT = `You are the Aliasist AI — the intelligent assistant embedded in aliasist.com, the developer portfolio and project hub of Blake, an AI security developer and CS student.
 
@@ -64,8 +65,11 @@ const AliasistChat = () => {
         }),
       });
 
-      const data = await res.json() as { response?: string; error?: string };
-      const reply = data.response ?? "// signal_lost — try again";
+      const data = await readJsonBody<{ response?: string; error?: string }>(res);
+      const reply =
+        data?.error && !data.response
+          ? `// ${data.error}`
+          : data?.response ?? (res.ok ? "// signal_lost — try again" : `// signal_lost — ${res.status}`);
       setMessages((prev) => [...prev, { role: "assistant", content: reply }]);
       playSuccess();
     } catch {

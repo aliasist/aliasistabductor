@@ -4,7 +4,8 @@ import { playHover, playClick, playSuccess } from "@/hooks/useSound";
 import streetBanner from "@images/aliasist_logo.svg";
 import mascot from "@/assets/mascot.svg";
 import { useState, useRef } from "react";
-import { contact, suiteApps, siteEndpoints } from "@/content/homepage";
+import { contact, suiteApps } from "@/content/homepage";
+import { readJsonBody, siteEndpoints } from "@/config/api";
 
 const CONTACT_API = siteEndpoints.contactApi;
 
@@ -48,8 +49,9 @@ const ContactSection = () => {
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ name: name.trim(), email: email.trim(), message: message.trim() }),
       });
-      const data = await res.json() as { ok?: boolean; error?: string };
-      if (!res.ok || !data.ok) throw new Error(data.error ?? "Unknown error");
+      const data = await readJsonBody<{ ok?: boolean; error?: string }>(res);
+      if (!data) throw new Error("Invalid response from server");
+      if (!res.ok || !data.ok) throw new Error(data.error ?? `Request failed (${res.status})`);
       setFormState("success");
       playSuccess();
       setName(""); setEmail(""); setMessage("");

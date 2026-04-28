@@ -1,7 +1,8 @@
 import { motion, AnimatePresence } from "framer-motion";
 import { playHover, playTransmit } from "@/hooks/useSound";
 import { useEffect, useRef, useState } from "react";
-import { transmissions, siteEndpoints } from "@/content/homepage";
+import { transmissions } from "@/content/homepage";
+import { readJsonBody, siteEndpoints } from "@/config/api";
 
 const NEWS_API = siteEndpoints.newsApi;
 
@@ -202,8 +203,8 @@ const TransmissionsSection = () => {
     const fetchNews = async () => {
       try {
         const res = await fetch(NEWS_API);
-        if (!res.ok) throw new Error("API error");
-        const data: NewsResponse = await res.json();
+        const data = await readJsonBody<NewsResponse>(res);
+        if (!res.ok || !data?.articles) throw new Error("API error");
         setNews(data.articles);
         setLastUpdated(data.lastUpdated);
         setError(false);
@@ -276,7 +277,7 @@ const TransmissionsSection = () => {
               className="flex items-center gap-2 font-mono text-[10px] uppercase tracking-[0.15em] text-electric"
             >
               <span className="w-2 h-2 rounded-full bg-electric animate-pulse" />
-              Live · Auto-refresh 30min
+              Live · Auto-refresh 10m
             </motion.div>
           )}
         </div>

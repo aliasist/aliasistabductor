@@ -6,7 +6,7 @@
  *   • Contact: scroll to Contact → right column "The Aliasist Suite".
  *   • Projects: each card has its own "Open …" button; URLs are in `projects`.
  *
- * Backend/API URLs (for developers): see `siteEndpoints` at the bottom.
+ * Backend/API URLs (for developers): see `src/config/api.ts` (`siteEndpoints`).
  */
 
 import pulseBanner from "@images/aliasist_logo.png";
@@ -265,9 +265,3 @@ export const transmissions = {
   liveFeedRecent: "recently",
 } as const;
 
-// ── API / worker URLs (not user-facing marketing copy) ───────────────────────
-
-export const siteEndpoints = {
-  contactApi: "https://llm-chat.bchooper0730.workers.dev/api/contact",
-  newsApi: "https://aliasist-news.bchooper0730.workers.dev/api/news",
-} as const;
