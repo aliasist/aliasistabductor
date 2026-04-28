@@ -35,24 +35,24 @@ The main portfolio and project hub for [aliasist.com](https://aliasist.com) — 
 - 📜 **Scroll progress bar** — teal glow at top of viewport
 - 🔒 **Classified project cards** — PROJECT CIPHER + PROJECT SPECTER
 
-## Branches
+## Branch
 
-- **`backup/aliasist-files-abductor-restored`** — full **homepage + `app/` Files Abductor** tree; this is the branch used for recent cleanup and **`src/content/homepage.ts`**. Use it for day-to-day work unless you are merging deliberately.
-- **`master`** — **has diverged** (e.g. EcoSist/storm experiments; some paths removed on that line). Do not assume it matches your local full site until you merge or cherry-pick intentionally. Cloudflare Pages may still track `master`; align deploy branch with whichever tree you want live.
+- **`master`** — canonical branch: **homepage + `app/` Files Abductor** + `apps/` workspace docs. Day-to-day work happens here.
+- **`backup/aliasist-files-abductor-restored`** — kept in sync with the same commits for now; you can delete it on GitHub later if you only want `master`.
+- **Recovery:** the previous `master` tip (EcoSist/storm line) is saved as git tag **`archive/master-pre-align-20260428`**.
 
 ## Local Development
 
 ```bash
 git clone https://github.com/aliasist/aliasistabductor
 cd aliasistabductor
-git checkout backup/aliasist-files-abductor-restored   # full site + app/
 npm install --legacy-peer-deps
 npm run dev
 ```
 
 ## Deploy
 
-Configure Cloudflare Pages to the branch you treat as production (`master` vs `backup/...`). Pushes to the connected branch trigger deploys.
+Point Cloudflare Pages at **`master`**; pushes to `master` trigger deploys.
 
 ## Brand
 

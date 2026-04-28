@@ -1,6 +1,6 @@
 # Where everything lives (aliasistabductor)
 
-Use this file when you forget what moved after a fast refactor. **The complete marketing site + Files Abductor app are on branch `backup/aliasist-files-abductor-restored`** (pushed to GitHub). `origin/master` has **diverged** (EcoSist / storm experiments and deletes); treat it as a separate line until you deliberately reconcile.
+Use this file when you forget what moved after a fast refactor. **The full marketing site + Files Abductor app are on `master`** (same commits as `backup/aliasist-files-abductor-restored` until you remove that branch). The **previous** `master` tip (EcoSist/storm line) is only on tag **`archive/master-pre-align-20260428`**.
 
 ## Top level
 
