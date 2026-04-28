@@ -1,3 +1,11 @@
+# Suite apps & workers: each `apps/*` folder is its own git clone (separate
+# GitHub repos). Keep them on disk for local work; do not commit them into
+# aliasistabductor.
+apps/*
+!apps/README.md
+!apps/tikasist/
+!apps/tikasist/**
+
 # Dependencies
 node_modules/
 
