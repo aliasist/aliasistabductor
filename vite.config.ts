@@ -28,12 +28,21 @@ export default defineConfig(async ({ mode }) => {
       hmr: {
         overlay: false,
       },
+      allowedHosts: [
+        "debian-cursor-precipitation-really.trycloudflare.com", // Add your Cloudflare Tunnel URL here
+        // Alternatively, use a wildcard to allow any subdomain of trycloudflare.com
+        ".trycloudflare.com",
+      ],
     },
     plugins: [react(), ...devPlugins, cloudflare()],
     resolve: {
       alias: {
         "@": path.resolve(__dirname, "./src"),
+        "@images": path.resolve(__dirname, "./images"),
       },
+    },
+    test: {
+      passWithNoTests: true,
     },
   };
 });

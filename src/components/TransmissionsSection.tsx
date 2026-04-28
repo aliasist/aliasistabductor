@@ -1,9 +1,9 @@
 import { motion, AnimatePresence } from "framer-motion";
 import { playHover, playTransmit } from "@/hooks/useSound";
 import { useEffect, useRef, useState } from "react";
+import { transmissions, siteEndpoints } from "@/content/homepage";
 
-// Will be replaced with live worker URL after deploy
-const NEWS_API = "https://aliasist-news.bchooper0730.workers.dev/api/news";
+const NEWS_API = siteEndpoints.newsApi;
 
 interface Article {
   id: string;
@@ -240,7 +240,7 @@ const TransmissionsSection = () => {
           transition={{ duration: 0.5 }}
           className="classified-divider mb-10"
         >
-          <span>Blog // Live Transmissions</span>
+          <span>{transmissions.dividerLabel}</span>
         </motion.div>
 
         {/* Header row */}
@@ -252,15 +252,18 @@ const TransmissionsSection = () => {
             transition={{ duration: 0.6 }}
           >
             <h2 className="text-3xl sm:text-4xl font-bold text-foreground tracking-tight">
-              Tech is moving fast.
+              {transmissions.headline}
             </h2>
             <p className="font-mono text-xs text-muted-foreground/50 mt-2 tracking-[0.1em]">
               {loading ? (
-                <span className="animate-pulse">// scanning frequencies...</span>
+                <span className="animate-pulse">{transmissions.scanning}</span>
               ) : error ? (
-                "// live feed offline — showing archive"
+                transmissions.offline
               ) : (
-                <>// live feed · updated {lastUpdated ? timeAgo(lastUpdated) : "recently"}</>
+                <>
+                  {transmissions.liveFeedPrefix}
+                  {lastUpdated ? timeAgo(lastUpdated) : transmissions.liveFeedRecent}
+                </>
               )}
             </p>
           </motion.div>

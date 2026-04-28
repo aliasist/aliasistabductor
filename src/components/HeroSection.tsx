@@ -1,10 +1,12 @@
 import { motion } from "framer-motion";
 import AlienEye from "./AlienEye";
 import { playClick } from "@/hooks/useSound";
-import heroBanner from "@/assets/hero-banner.png";
-import badge from "@/assets/badge.png";
-import aliasistIcon from "@/assets/logo.png";
-import mascot from "@/assets/mascot.png";
+import heroBanner from "@images/aliasist_logo.png";
+import badge from "@images/aliasist_icon_final.png";
+import aliasistIcon from "@images/aliasist_logo.png";
+import mascot from "@/assets/mascot.svg";
+import { hero } from "@/content/homepage";
+
 const HeroSection = () => {
   return (
     <section className="relative min-h-screen flex items-center justify-center grid-bg overflow-hidden scanlines">
@@ -26,7 +28,7 @@ const HeroSection = () => {
         className="absolute top-24 right-6 sm:right-12 hidden sm:flex items-center gap-2 font-mono text-[10px] uppercase tracking-[0.15em] text-muted-foreground border border-border/50 px-3 py-1.5 bg-background/30 backdrop-blur-md"
       >
         <span className="text-electric animate-pulse">▮</span>
-        Systems Operational // Q2 2026
+        {hero.statusBadge}
       </motion.div>
 
       {/* Glossy alien icon — bottom right atmospheric */}
@@ -64,7 +66,7 @@ const HeroSection = () => {
           />
         </motion.div>
         <p className="font-mono text-[9px] uppercase tracking-[0.2em] text-electric/50 text-center">
-          aliasist // cowboy alien
+          {hero.mascotLabel}
         </p>
       </motion.div>
 
@@ -95,8 +97,8 @@ const HeroSection = () => {
             <div className="absolute -inset-2 rounded-full border border-electric/25 animate-pulse pointer-events-none" />
             <img
               src={mascot}
-              alt="Meet our mascot: aliasist, the cowboy alien!"
-              title="Meet our mascot: aliasist, the cowboy alien!"
+              alt={hero.mascotAlt}
+              title={hero.mascotTitle}
               className="w-24 h-24 rounded-full object-cover border-2 border-electric/50 shadow-[0_0_16px_hsl(165_90%_42%_/_0.3)] select-none"
             />
           </motion.div>
@@ -111,7 +113,7 @@ const HeroSection = () => {
         >
           <span className="block w-12 h-px bg-gradient-to-r from-transparent to-electric/60" />
           <p className="font-mono text-[11px] tracking-[0.3em] uppercase text-electric/80">
-            AI Security & Adversarial Defense
+            {hero.eyeline}
           </p>
           <span className="block w-12 h-px bg-gradient-to-l from-transparent to-electric/60" />
         </motion.div>
@@ -119,12 +121,12 @@ const HeroSection = () => {
         {/* Wordmark */}
         <motion.h1
           className="glitch-text text-6xl sm:text-8xl md:text-[9rem] font-bold tracking-tight text-foreground mb-5 leading-none select-none"
-          data-text="ALIASIST"
+          data-text={hero.wordmark}
           initial={{ opacity: 0, y: 24 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.9, delay: 0.3, ease: [0.16, 1, 0.3, 1] }}
         >
-          ALIASIST
+          {hero.wordmark}
         </motion.h1>
 
         {/* Tagline */}
@@ -134,7 +136,7 @@ const HeroSection = () => {
           animate={{ opacity: 1 }}
           transition={{ delay: 0.6, duration: 0.7 }}
         >
-          Adversarial by Nature. Defensive by Design.
+          {hero.tagline}
         </motion.p>
 
         {/* Sub copy */}
@@ -144,7 +146,7 @@ const HeroSection = () => {
           animate={{ opacity: 1, y: 0 }}
           transition={{ delay: 0.7, duration: 0.6 }}
         >
-          Building the tools that find the gaps before they do.
+          {hero.subcopy}
         </motion.p>
 
         {/* CTAs */}
@@ -160,14 +162,14 @@ const HeroSection = () => {
             className="group relative px-8 py-3.5 bg-electric text-background font-mono text-xs uppercase tracking-[0.14em] rounded-sm overflow-hidden transition-all hover:-translate-y-0.5 active:scale-95"
           >
             <span className="absolute inset-0 bg-white/10 translate-y-full group-hover:translate-y-0 transition-transform duration-300" />
-            <span className="relative">View My Work</span>
+            <span className="relative">{hero.ctaWork}</span>
           </a>
           <a
             href="#contact"
             onClick={() => playClick()}
             className="px-8 py-3.5 border border-border/60 text-foreground/80 font-mono text-xs uppercase tracking-[0.14em] rounded-sm hover:border-electric/60 hover:text-electric hover:bg-electric/5 transition-all hover:-translate-y-0.5 active:scale-95"
           >
-            Contact Me
+            {hero.ctaContact}
           </a>
         </motion.div>
 
@@ -176,26 +178,29 @@ const HeroSection = () => {
           initial={{ opacity: 0 }}
           animate={{ opacity: 1 }}
           transition={{ delay: 1.2, duration: 0.8 }}
-          className="flex items-center justify-center gap-5 mt-16 font-mono text-[10px] uppercase tracking-[0.18em] text-muted-foreground/30"
+          className="flex flex-wrap items-center justify-center gap-5 mt-16 font-mono text-[10px] uppercase tracking-[0.18em] text-muted-foreground/30"
         >
-          {["Open Source", "AI Security", "4 Live Apps"].map((t, i) => (
+          {hero.statusRow.map((t, i) => (
             <span key={t} className="flex items-center gap-5">
               {i > 0 && <span className="w-1 h-1 rounded-full bg-border/60" />}
               {t}
             </span>
           ))}
         </motion.div>
-      </div>
 
-      {/* Roswell badge watermark */}
-      <motion.div
-        initial={{ opacity: 0 }}
-        animate={{ opacity: 1 }}
-        transition={{ delay: 1.8, duration: 1.2 }}
-        className="absolute bottom-16 left-8 hidden lg:block pointer-events-none"
-      >
-        <img src={badge} alt="" className="w-24 h-24 opacity-[0.15] hover:opacity-30 transition-opacity duration-700" />
-      </motion.div>
+        <motion.div
+          initial={{ opacity: 0 }}
+          animate={{ opacity: 1 }}
+          transition={{ delay: 1.35, duration: 0.8 }}
+          className="flex justify-center mt-10"
+        >
+          <img
+            src={badge}
+            alt=""
+            className="w-24 h-24 opacity-[0.15] hover:opacity-30 transition-opacity duration-700"
+          />
+        </motion.div>
+      </div>
 
       {/* Bottom fade */}
       <div className="absolute bottom-0 left-0 right-0 h-48 bg-gradient-to-t from-background via-background/60 to-transparent pointer-events-none" />

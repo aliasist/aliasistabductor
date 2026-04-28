@@ -15,7 +15,7 @@ These folders are **separate git repositories** cloned next to the [aliasistabdu
 | `ecosist` | EcoSist | (Pages / dev) | [aliasist/ecosist](https://github.com/aliasist/ecosist) |
 | `chatroom` | Durable chat (Workers) | (deployed Worker) | [aliasist/chatroom](https://github.com/aliasist/chatroom) |
 | `phoenix-image-worker` | Image generation Worker | (Worker) | [aliasist/phoenix-image-worker](https://github.com/aliasist/phoenix-image-worker) |
-| `pulse` | Legacy desktop / finance experiments | — | [aliasist/pulse](https://github.com/aliasist/pulse) |
+| `pulse` | Legacy snapshot on GitHub (oversized tree; do not clone into `apps/` unless you mean to) | — | [aliasist/pulse](https://github.com/aliasist/pulse) |
 | `swot` | JetBrains `swot` domain list (education licenses) | — | [aliasist/swot](https://github.com/aliasist/swot) |
 
 ## Quick start (per app)

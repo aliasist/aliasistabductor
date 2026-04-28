@@ -15,8 +15,12 @@ Sentry.init({
   sendDefaultPii: false,
 });
 
-// Production Clerk key — also set VITE_CLERK_PUBLISHABLE_KEY in Cloudflare env vars
-const PUBLISHABLE_KEY = import.meta.env.VITE_CLERK_PUBLISHABLE_KEY as string ?? "pk_live_Y2xlcmsuYWxpYXNpc3QuY29tJA";
+
+// Use dev Clerk key on localhost, prod key otherwise
+const DEV_CLERK_KEY = import.meta.env.VITE_CLERK_DEV_PUBLISHABLE_KEY as string;
+const PROD_CLERK_KEY = import.meta.env.VITE_CLERK_PUBLISHABLE_KEY as string ?? "pk_live_Y2xlcmsuYWxpYXNpc3QuY29tJA";
+const isLocalhost = typeof window !== "undefined" && window.location.hostname === "localhost";
+const PUBLISHABLE_KEY = isLocalhost && DEV_CLERK_KEY ? DEV_CLERK_KEY : PROD_CLERK_KEY;
 
 createRoot(document.getElementById("root")!).render(
   <ClerkProvider publishableKey={PUBLISHABLE_KEY ?? ""} afterSignOutUrl="/">
