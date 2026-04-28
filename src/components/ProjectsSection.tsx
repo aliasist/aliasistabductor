@@ -22,9 +22,12 @@ const ProjectCard = ({ project, index }: { project: ProjectCard; index: number }
       {/* Static banner */}
       {project.banner && (
         <div
-          className="absolute inset-0 bg-cover bg-center opacity-[0.06] pointer-events-none"
+          className="absolute inset-0 bg-cover bg-center opacity-[0.08] mix-blend-screen pointer-events-none"
           style={{ backgroundImage: `url(${project.banner})` }}
         />
+      )}
+      {project.banner && (
+        <div className="absolute inset-0 bg-gradient-to-r from-card via-card/85 to-card/55 pointer-events-none" />
       )}
 
       {/* Teal glow on hover */}

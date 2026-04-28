@@ -1,7 +1,7 @@
 
 import { motion, AnimatePresence } from "framer-motion";
 import { playHover, playClick, playSuccess } from "@/hooks/useSound";
-import streetBanner from "@images/aliasist_logo.svg";
+import streetBanner from "@images/aliasist_banner_street.png";
 import mascot from "@/assets/mascot.svg";
 import { useState, useRef } from "react";
 import { contact, suiteApps } from "@/content/homepage";
@@ -67,7 +67,7 @@ const ContactSection = () => {
     <section id="contact" className="py-28 px-6 bg-foreground text-background relative overflow-hidden">
       {/* Street banner background */}
       <div
-        className="absolute inset-0 bg-cover bg-center opacity-[0.06] pointer-events-none"
+        className="absolute inset-0 bg-cover bg-center opacity-[0.12] mix-blend-screen pointer-events-none"
         style={{ backgroundImage: `url(${streetBanner})` }}
       />
       {/* Mascot background for branding */}

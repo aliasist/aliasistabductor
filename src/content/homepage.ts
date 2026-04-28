@@ -9,8 +9,10 @@
  * Backend/API URLs (for developers): see `src/config/api.ts` (`siteEndpoints`).
  */
 
-import pulseBanner from "@images/aliasist_logo.png";
-import abduction1 from "@images/aliasist_icon_final.png";
+import dataBanner from "@images/aliasist_banner_orbit.png";
+import pulseBanner from "@images/aliasist_banner_command.png";
+import spaceBanner from "@images/a_planet_in_space_with_clouds.jpg";
+import abduction1 from "@images/aliasist-abduction-1774688862693.png";
 import tikaLogo from "@images/aliasist_icon_final.png";
 
 // ── Hero ─────────────────────────────────────────────────────────────────────
@@ -119,7 +121,7 @@ export const projects = [
     icon: "🌌",
     link: "https://space.aliasist.com",
     linkLabel: "Open SpaceSist →",
-    banner: null as string | null,
+    banner: spaceBanner,
   },
   {
     name: "PulseSist",
@@ -162,7 +164,7 @@ export const projects = [
     icon: "🌐",
     link: "https://datasist-frontend.pages.dev",
     linkLabel: "Open DataSist →",
-    banner: null,
+    banner: dataBanner,
   },
 ] as const;
 
@@ -264,4 +266,3 @@ export const transmissions = {
   liveFeedPrefix: "// live feed · updated ",
   liveFeedRecent: "recently",
 } as const;
-
