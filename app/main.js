@@ -2,6 +2,7 @@ const { app, BrowserWindow, ipcMain, dialog } = require('electron');
 const path = require('path');
 const fs = require('fs');
 const { spawn, spawnSync } = require('child_process');
+const { validateDownloadUrl, validateSavePath, validateDefaultName } = require('./security');
 
 if (process.platform === 'win32') app.setAppUserModelId('com.aliasist.files.abductor');
 
@@ -45,14 +46,29 @@ ipcMain.on('win-close', () => mainWindow.close());
 ipcMain.handle('get-dl-dir', () => DL_DIR);
 
 ipcMain.handle('browse-save', async (event, defaultName) => {
+  const nameCheck = validateDefaultName(defaultName);
+  if (!nameCheck.ok) {
+    throw new Error(nameCheck.error);
+  }
   const result = await dialog.showSaveDialog(mainWindow, {
-    defaultPath: path.join(DL_DIR, defaultName)
+    defaultPath: path.join(DL_DIR, nameCheck.name)
   });
   return result.filePath; // Returns the string path back to renderer
 });
 
 ipcMain.handle('download-file', async (event, url, savePath) => {
   return new Promise((resolve, reject) => {
+    const urlCheck = validateDownloadUrl(url);
+    if (!urlCheck.ok) {
+      reject(new Error(urlCheck.error));
+      return;
+    }
+    const pathCheck = validateSavePath(savePath);
+    if (!pathCheck.ok) {
+      reject(new Error(pathCheck.error));
+      return;
+    }
+
     // On Windows, it looks for yt-dlp.exe. On Linux, just yt-dlp.
     const cmd = process.platform === 'win32' ? 'yt-dlp.exe' : 'yt-dlp';
     
@@ -61,7 +77,7 @@ ipcMain.handle('download-file', async (event, url, savePath) => {
     // For merged mp4, make yt-dlp write to a deterministic template.
     // We treat the user-provided savePath as a "base" and let yt-dlp choose ext,
     // while we still report a finalPath of `${base}.mp4`.
-    const parsedBase = savePath.replace(/\.[a-zA-Z0-9]+$/, "");
+    const parsedBase = pathCheck.resolved.replace(/\.[a-zA-Z0-9]+$/, "");
     const outTemplate = `${parsedBase}.%(ext)s`;
     const finalPath = `${parsedBase}.mp4`;
     const outDir = path.dirname(parsedBase);
@@ -69,7 +85,7 @@ ipcMain.handle('download-file', async (event, url, savePath) => {
 
     // Force downloading best video+audio and merging to mp4.
     const args = [
-      url,
+      urlCheck.href,
       '--newline',
       '--no-playlist',
       '--format',
@@ -90,7 +106,7 @@ ipcMain.handle('download-file', async (event, url, savePath) => {
     ];
     // Parse yt-dlp progress output for smooth UX.
     // yt-dlp often writes progress to stderr, so we listen to both.
-    const ls = spawn(cmd, args, { stdio: ['ignore', 'pipe', 'pipe'] });
+    const ls = spawn(cmd, args, { stdio: ['ignore', 'pipe', 'pipe'], shell: false });
     currentProcess = ls;
     let stdoutBuffer = '';
     let stderrBuffer = '';

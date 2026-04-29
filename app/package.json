@@ -44,6 +44,7 @@
     },
     "files": [
       "main.js",
+      "security.js",
       "preload.js",
       "index.html",
       "renderer.js",
