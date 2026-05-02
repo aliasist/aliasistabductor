@@ -223,7 +223,7 @@ export const about = {
   bioBlocks: [
     {
       kicker: "Where I started",
-      body: "I started building on the web since I was a kid — my first real project was a simple HTML site for an online clan. That early dive into HTML, CSS, set the pattern of work flow.",
+      body: "I started building on the web since I was a kid — my first real project was a simple HTML site for an online clan. That early dive into HTML, CSS, set the pattern of work flow. If you would like to collaborate on a project or have feedback on my work, please reach out. I’m always looking to connect with other builders and creators.",
     },
   ] as const,
 
